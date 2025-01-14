@@ -27,13 +27,16 @@ PrayerArray = []
 # Create main dataframe to hold all data 
 HeadDf = pd.DataFrame(PrayerHead)
 # Year string initialized as 2024 
-year = '2024'
+year = ''
 # Default CSV filename
-CsvName = "PrayerTiming"+year+".csv"
+CsvName = ""
 # Method definition to get current year from user input e.g "2024" without quotation marks
 def GetYear():
+    global year 
     year = input("Please enter current year[yyyy]: ")
+    global CsvName 
     CsvName = "PrayerTiming"+year+".csv"
+    print("Save all Namaz TimeTable in ", CsvName)
 
 def SetInitHeader(HeadDataframe):
     try:
