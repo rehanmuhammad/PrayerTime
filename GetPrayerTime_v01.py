@@ -7,19 +7,19 @@ from datetime import timedelta, datetime
 
 # Lists definition
 # months and city names(spellings) are same as on the website
-months = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre" \
-            ]
-cities = ["ascoli-piceno", "asti", "barberino-di-mugello", "bari", "biella", "bologna", "brescia", "como", "catania", "gradisca-d'isonzo", \
-          "genova", "milano", "modena", "mondovi", "napoli", "padova", "palermo", "parma", "pavia", "pordenone", "ravenna", "roma", "rovigo", \
-          "san-pietro-in-casale", "torino", "varese", "verona" \
-          ]
+months = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", \
+          "settembre", "ottobre", "novembre", "dicembre"]
+cities = ["ascoli-piceno", "asti", "barberino-di-mugello", "bari", "biella", "bologna", \
+          "brescia", "como", "catania", "gradisca-d'isonzo", "genova", "milano", "modena", \
+          "mondovi", "napoli", "padova", "palermo", "parma", "pavia", "pordenone", "ravenna", \
+          "roma", "rovigo", "san-pietro-in-casale", "torino", "varese", "verona" ]
 # Dictionary to hold final data to be transfered to CSV
 PrayerHead = {'Data':[''],'Fajr':[''], 'Sunrise':[''],'Zuhr':[''], 'Asr':[''], 'Maghrib':[''], 'Isha':[''], 'City Name':['']}
 # Offsets to calculate prayers timings
-FAJR_OFFSET = timedelta(hours=1, minutes=30)    # 01:30
-ZUHR_OFFSET = timedelta(hours=0, minutes=15)    # 00:15
-MAGHRIB_OFFSET = timedelta(hours=0, minutes=5)  # 00:05
-ISHA_OFFSET = timedelta(hours=1, minutes=30)    # 01:30
+FAJR_OFFSET = timedelta(hours=1, minutes=30, seconds=0)    # 01:30
+ZUHR_OFFSET = timedelta(hours=0, minutes=15, seconds=0)    # 00:15
+MAGHRIB_OFFSET = timedelta(hours=0, minutes=5, seconds=0)  # 00:05
+ISHA_OFFSET = timedelta(hours=1, minutes=30, seconds=0)    # 01:30
 # Global variable to hold number of days in the month
 NumDays= 0
 # Numpy data array to hold copied data from website
@@ -93,25 +93,25 @@ def ReadTablesAndWriteCsv(HeadDataframe):
                 NamazDelta = []
                 # Sunrise time data 
                 SunriseTime = datetime.strptime(PrayerArray[i,1], '%H:%M').time()
-                NamazDelta.insert(0, timedelta(hours=SunriseTime.hour, minutes=SunriseTime.minute))
+                NamazDelta.insert(0, timedelta(hours=SunriseTime.hour, minutes=SunriseTime.minute, seconds=SunriseTime.second))
                 # Fajr prayer time calculation
                 NamazDelta.insert(1, NamazDelta[0] - FAJR_OFFSET)
                 # Total daylight hours
                 DayTime = datetime.strptime(PrayerArray[i,3], '%H:%M').time()
-                HalfDaytime_delta = timedelta(hours=DayTime.hour, minutes=DayTime.minute) /2
+                HalfDaytime_delta = timedelta(hours=DayTime.hour, minutes=DayTime.minute, seconds=DayTime.second) /2
                 # Zuhr prayer time calculation
                 NamazDelta.insert(2, NamazDelta[0] + HalfDaytime_delta + ZUHR_OFFSET)
                 # Asr prayer time calculation
                 NamazDelta.insert(3, NamazDelta[2] + (HalfDaytime_delta/2))
                 # Sunset time data
                 SunsetTime = datetime.strptime(PrayerArray[i,2], '%H:%M').time()
-                MaghribTime_delta = timedelta(hours=SunsetTime.hour, minutes=SunsetTime.minute)
+                MaghribTime_delta = timedelta(hours=SunsetTime.hour, minutes=SunsetTime.minute, seconds=SunsetTime.second)
                 # Maghrib prayer time calculation
                 NamazDelta.insert(4, MaghribTime_delta + MAGHRIB_OFFSET )
                 # Isha prayer time calculation
                 NamazDelta.insert(5, NamazDelta[4] + ISHA_OFFSET )
                 for k in range(6):
-                    NamazStr.insert(k,':'.join(str(NamazDelta[k]).split(':')[:2]))
+                    NamazStr.insert(k,':'.join(str(NamazDelta[k]).split(':')[:3]))
                     # print(NamazStr[k])
                 # Copy all data(add new row) to the dictionary
                 # [0]= Date, [1]= Fajr, [2]= Sunrise, [3]= Zuhr, [4]= Asr, [5]= Maghrib, [6]= Isha, [7]= City Name
