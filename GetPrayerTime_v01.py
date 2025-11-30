@@ -9,10 +9,11 @@ from datetime import timedelta, datetime
 # months and city names(spellings) are same as on the website
 months = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", \
           "settembre", "ottobre", "novembre", "dicembre"]
-cities = ["ascoli-piceno", "asti", "barberino-di-mugello", "bari", "biella", "bologna", \
-          "brescia", "como", "catania", "gradisca-d'isonzo", "genova", "milano", "modena", \
-          "mondovi", "napoli", "padova", "palermo", "parma", "pavia", "pordenone", "ravenna", \
-          "roma", "rovigo", "san-pietro-in-casale", "torino", "varese", "verona" ]
+cities = ["ascoli-piceno", "asti", "barberino-di-mugello","bari", "bergamo","biella", "bologna", \
+          "brescia","brunico","busto-arsizio","campo-tures", "catania", "como", "ferrara", "genova", \
+          "gradisca-d'isonzo",  "messina","milano", "modena", "mondovi", "napoli", "padova", "palermo",\
+          "parma", "pavia", "pordenone", "ravenna", "roma", "rovigo", "san-pietro-in-casale", "strigno",\
+          "torino", "varese", "vercelli", "verona" ]
 # Dictionary to hold final data to be transfered to CSV
 PrayerHead = {'Data':[''],'Fajr':[''], 'Sunrise':[''],'Zuhr':[''], 'Asr':[''], 'Maghrib':[''], 'Isha':[''], 'City Name':['']}
 # Offsets to calculate prayers timings
@@ -36,7 +37,7 @@ def GetYear():
     year = input("Please enter current year[yyyy]: ")
     global CsvName 
     CsvName = "PrayerTiming"+year+".csv"
-    print("Save all Namaz TimeTable in ", CsvName)
+    print("Save all Namaz TimeTable in", CsvName)
 
 def SetInitHeader(HeadDataframe):
     try:
@@ -76,11 +77,17 @@ def ReadTablesAndWriteCsv(HeadDataframe):
                     print("WARNING:Connection error, Website link is not responding. Retrying again")
                     # Continue to open link 
                     continue
+                except requests.exceptions.ConnectTimeout: #or Timeout requests.exceptions.ConnectTimeout or requests.exceptions.ReadTimeout
+                    print("WARNING:Timeout error, Website link is not responding. Retrying again")
+                    # Continue to open link 
+                    continue
                 except ValueError:
                     print("ERROR:Value error, please check spellings,",year, y,"or", x, "is not found... Exiting code!!!")
                     input('\nPress key to exit.')
                     # System exit
-                    sys.exit()
+                    #sys.exit()
+                    continue
+
                 except:
                     input('\nGeneric error or user interrupt...Press key to exit.')
                     # System exit
@@ -117,7 +124,8 @@ def ReadTablesAndWriteCsv(HeadDataframe):
                 # [0]= Date, [1]= Fajr, [2]= Sunrise, [3]= Zuhr, [4]= Asr, [5]= Maghrib, [6]= Isha, [7]= City Name
                 HeadDataframe.loc[i, :] = [PrayerArray[i,0], NamazStr[1], NamazStr[0], NamazStr[2], NamazStr[3], NamazStr[4], NamazStr[5], x]
             # Print dictionary
-            print(HeadDataframe)
+            # print(HeadDataframe)
+            print("Data copy of ",x, y)
             try:
                 # Save table on CSV file
                 HeadDataframe.to_csv(CsvName, mode='a', index=False, header=False)
@@ -133,5 +141,7 @@ GetYear()
 SetInitHeader(HeadDf)
 # Read from weblink and process time data to save into CSV
 ReadTablesAndWriteCsv(HeadDf)
+
+input('\nScript complete...Press key to exit.')
 
 ########################### Main code ends here ############################
