@@ -1,8 +1,11 @@
 # Script to calculate prayer timing by data received from website: https://www.sunrise-and-sunset.com/it/sun/italia/
 import sys
 import requests
+from  requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 import pandas as pd
 import numpy as np
+import time
 from datetime import timedelta, datetime
 
 # Lists definition
@@ -13,7 +16,7 @@ cities = ["ascoli-piceno", "asti", "barberino-di-mugello","bari", "bergamo","bie
           "brescia","brunico","busto-arsizio","campo-tures", "catania", "como", "ferrara", "genova", \
           "gradisca-d'isonzo",  "messina","milano", "modena", "mondovi", "napoli", "padova", "palermo",\
           "parma", "pavia", "pordenone", "ravenna", "roma", "rovigo", "san-pietro-in-casale", "strigno",\
-          "torino", "varese", "vercelli", "verona" ]
+          "torino", "trieste", "varese", "vercelli", "verona" ]
 # Dictionary to hold final data to be transfered to CSV
 PrayerHead = {'Data':[''],'Fajr':[''], 'Sunrise':[''],'Zuhr':[''], 'Asr':[''], 'Maghrib':[''], 'Isha':[''], 'City Name':['']}
 # Offsets to calculate prayers timings
@@ -31,6 +34,25 @@ HeadDf = pd.DataFrame(PrayerHead)
 year = ''
 # Default CSV filename
 CsvName = ""
+
+def create_session(
+        total_retries=5,
+        backoff_factor=1,
+        status_forcelist=(500, 502, 503, 504),
+):
+    session = requests.Session()
+    retry = Retry(
+        total=total_retries,
+        read=total_retries,
+        connect=total_retries,
+        backoff_factor=backoff_factor,
+        status_forcelist=status_forcelist,
+        allowed_methods=["GET", "POST"]
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount("https://", adapter)
+    return session
+
 # Method definition to get current year from user input e.g "2024" without quotation marks
 def GetYear():
     global year 
@@ -64,9 +86,13 @@ def ReadTablesAndWriteCsv(HeadDataframe):
         for y in months:
             # Reading the website link for tables and copy data to dataframe
             while True:
+                # print(time.localtime)
                 try:
+                    url= 'https://www.sunrise-and-sunset.com/it/sun/italia/'+ x + '/'+year+'/'+ y
+                    session= create_session()
+                    response = session.get(url,timeout=20)
                     # Read website
-                    df = pd.read_html(requests.get('https://www.sunrise-and-sunset.com/it/sun/italia/'+ x + '/'+year+'/'+ y).content)[-1]
+                    df = pd.read_html(response.content)[-1]
                     # Eliminate last row
                     table = df.iloc[:-1 ,:]
                     # Calculate number of days in the month
@@ -77,9 +103,21 @@ def ReadTablesAndWriteCsv(HeadDataframe):
                     print("WARNING:Connection error, Website link is not responding. Retrying again")
                     # Continue to open link 
                     continue
-                except requests.exceptions.ConnectTimeout: #or Timeout requests.exceptions.ConnectTimeout or requests.exceptions.ReadTimeout
+                except requests.exceptions.ConnectTimeout: #or requests.exceptions.ReadTimeout
                     print("WARNING:Timeout error, Website link is not responding. Retrying again")
                     # Continue to open link 
+                    continue
+                except requests.exceptions.HTTPError:
+                    print("ERROR:HTTPError found... Exiting code!!!")
+                    input('\nPress key to exit.')
+                    continue
+                except requests.exceptions.ReadTimeout:
+                    print("ERROR:ReadTimeout... Exiting code!!!")
+                    input('\nPress key to exit.')
+                    continue
+                except requests.exceptions.RequestException:
+                    print("ERROR:RequestException... Exiting code!!!")
+                    input('\nPress key to exit.')
                     continue
                 except ValueError:
                     print("ERROR:Value error, please check spellings,",year, y,"or", x, "is not found... Exiting code!!!")
@@ -87,7 +125,6 @@ def ReadTablesAndWriteCsv(HeadDataframe):
                     # System exit
                     #sys.exit()
                     continue
-
                 except:
                     input('\nGeneric error or user interrupt...Press key to exit.')
                     # System exit
@@ -125,7 +162,7 @@ def ReadTablesAndWriteCsv(HeadDataframe):
                 HeadDataframe.loc[i, :] = [PrayerArray[i,0], NamazStr[1], NamazStr[0], NamazStr[2], NamazStr[3], NamazStr[4], NamazStr[5], x]
             # Print dictionary
             # print(HeadDataframe)
-            print("Data copy of ",x, y)
+            print("Data copy of",x, y)
             try:
                 # Save table on CSV file
                 HeadDataframe.to_csv(CsvName, mode='a', index=False, header=False)

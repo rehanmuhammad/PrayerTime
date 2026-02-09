@@ -14,7 +14,7 @@ cities = ["ascoli-piceno", "asti", "barberino-di-mugello","bari", "bergamo","bie
           "brescia","brunico","busto arsizio","campo tures", "catania", "como", "ferrara", "genova", \
           "gradisca-d'isonzo",  "messina","milano", "modena", "mondovi", "napoli", "padova", "palermo",\
           "parma", "pavia", "pordenone", "ravenna", "roma", "rovigo", "san-pietro-in-casale", "strigno",\
-          "torino", "varese", "vercelli", "verona" ]
+          "torino", "trieste", "varese", "vercelli", "verona" ]
 # Dictionary to hold final data to be transfered to CSV
 PrayerHead = {'Data':[''],'Fajr_Begins':[''],'Fajr_Jamah':[''], 'Sunrise':[''],'Zuhr_Begins':[''],\
               'Zuhr_Jamah':[''], 'Asr_Begins':[''],'Asr_Jamah':[''], 'Maghrib_Begins':[''],'Maghrib_Jamah':[''],\
