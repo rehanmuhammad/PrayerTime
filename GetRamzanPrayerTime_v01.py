@@ -17,7 +17,7 @@ cities = ["ascoli-piceno", "asti", "barberino-di-mugello","bari", "bergamo","bie
           "torino", "trieste", "varese", "vercelli", "verona" ]
 # Dictionary to hold final data to be transfered to CSV
 PrayerHead = {'Data':[''],'Fajr_Begins':[''],'Fajr_Jamah':[''], 'Sunrise':[''],'Zuhr_Begins':[''],\
-              'Zuhr_Jamah':[''], 'Asr_Begins':[''],'Asr_Jamah':[''], 'Maghrib_Begins':[''],'Maghrib_Jamah':[''],\
+              'Zuhr_Jamah':[''], 'Asr_Begins':[''],'Asr_Jamah':[''], 'Sunset':[''],'Maghrib_Jamah':[''],\
               'Isha_Begins':[''],'Isha_Jamah':[''], 'City Name':['']}
 # Offsets to calculate prayers timings
 FAJR_OFFSET = timedelta(hours=1, minutes=30, seconds=0)    # 01:30
@@ -139,16 +139,18 @@ def ReadTablesAndWriteCsv(HeadDataframe):
                     SunsetTime = datetime.strptime(PrayerArray[i,2], '%H:%M').time()
                     MaghribTime_delta = timedelta(hours=SunsetTime.hour, minutes=SunsetTime.minute, seconds=SunsetTime.second)
                     # Maghrib prayer time calculation
-                    NamazDelta.insert(4, MaghribTime_delta + MAGHRIB_OFFSET )
+                    NamazDelta.insert(4, MaghribTime_delta)
+                    # Maghrib prayer time calculation
+                    NamazDelta.insert(5, MaghribTime_delta + MAGHRIB_OFFSET )
                     # Isha prayer time calculation
-                    NamazDelta.insert(5, NamazDelta[4] + ISHA_OFFSET )
-                    for k in range(6):
+                    NamazDelta.insert(6, NamazDelta[5] + ISHA_OFFSET )
+                    for k in range(7):
                         NamazStr.insert(k,':'.join(str(NamazDelta[k]).split(':')[:3]))
                         # print(NamazStr[k])
                     # Copy all data(add new row) to the dictionary
                     # [0]= Date, [1]= Fajr, [2]= Sunrise, [3]= Zuhr, [4]= Asr, [5]= Maghrib, [6]= Isha, [7]= City Name
                     HeadDataframe.loc[lIndex, :] = [PrayerArray[i,0], NamazStr[1],NamazStr[1], NamazStr[0], NamazStr[2], NamazStr[2], \
-                                               NamazStr[3], NamazStr[3], NamazStr[4], NamazStr[4], NamazStr[5],NamazStr[5], x]
+                                               NamazStr[3], NamazStr[3], NamazStr[4], NamazStr[5], NamazStr[6],NamazStr[6], x]
                     lIndex = lIndex + 1
                 # Print dictionary
                 print(HeadDataframe)
